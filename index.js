@@ -1,15 +1,22 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require("body-parser");
-
+const { get } = require("./session"); 
+const qrCode = require('./qr');
+const pair = require('./pair');
 const app = express();
 const __path = process.cwd();
 const PORT = process.env.PORT || 8000;
 
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(express.static(path.join(__path, 'public')));
+
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__path, '/public/index.html'));
+});
 
 app.get('/pair', (req, res) => {
     res.sendFile(path.join(__path, '/public/pair.html'));
@@ -23,19 +30,41 @@ app.get('/update-session', (req, res) => {
     res.sendFile(path.join(__path, '/public/updateSession.html'));
 });
 
+app.get('/session', async (req, res) => {
+    const q = req.query.q;
 
-let qrCode = require('./qr');
-app.use('/qr-code', qrCode);
+    if (!q) {
+        return res.status(400).json({
+            status: false,
+            message: 'Query parameter "q" is required.'
+        });
+    }
 
-let pair = require('./pair');
-app.use('/code', pair);
+    const splitQuery = q.split(';')[1];
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__path, '/public/index.html'));
+    try {
+        const result = await get(splitQuery); // Pass the first part to the `get` function
+        res.json({
+            status: true,
+            result
+        });
+    } catch (error) {
+        console.error('Error in /ringtone:', error);
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error.',
+            error: error.message
+        });
+    }
 });
 
+
+app.use('/qr-code', qrCode);
+app.use('/code', pair);
+
+
 app.listen(PORT, () => {
-    console.log('Server running on http://localhost:' + PORT);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 module.exports = app;
