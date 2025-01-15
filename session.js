@@ -1,37 +1,41 @@
-const axios = require('axios');
+>const axios = require("axios");
 
-const xMasterKey = "$2a$10$sujZUgBt7AyrdxhwKo7OSuFOYDTEIFKsJxWt68lGtlX9lQTMWw47K";
-const xAccessKey = "$2a$10$t15OgGh1DJz5NaGlQHaRzejoHDZK4nLKki5RaB9B6xr8flPu2XGlO";
+const token = "c861c4509789d59ba33c8855c72dfb44957df4cf95f9efb4c5c91ba9126706c08ebea8fc87e14901c8f147da32967160d790f93c77558cfbdfe97904b01be486";
 
-
-const create = async (data) => {
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-Master-Key': xMasterKey, 
-    'X-Access-Key': xAccessKey, 
-    'X-Bin-Private': 'true', 
-  };
-
+async function create(data) {
   try {
-    const response = await axios.post('https://api.jsonbin.io/v3/b', data, { headers });
-    return response.data.metadata; 
+    const config = {
+      method: 'post',
+      url: 'https://hastebin.com/documents',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'  
+      },
+      data: JSON.stringify({ content: data })  
+    };
+
+    const response = await axios(config);
+    return { id: response.data.key };  
   } catch (error) {
-    throw error.response?.data || error.message; 
+    throw new Error(`Error creating document: ${error.message}`);
   }
-};
+}
 
-
-const get = async (binId) => {
-  const headers = {
-    'X-Master-Key': xMasterKey
-  };
-
+async function get(key) {
   try {
-    const response = await axios.get(`https://api.jsonbin.io/v3/b/${binId}`, { headers });
-    return response.data.record; 
+    const config = {
+      method: 'get',
+      url: `https://hastebin.com/raw/${key}`,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    const response = await axios(config);
+    return response.data
   } catch (error) {
-    throw error.response?.data || error.message; 
+    throw new Error(`Error getting document: ${error.message}`);
   }
-};
+}
 
 module.exports = { create, get };
