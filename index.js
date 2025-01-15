@@ -46,7 +46,7 @@ app.get('/session', async (req, res) => {
         const result = await get(splitQuery); // Pass the first part to the `get` function
         res.json({
             status: true,
-            result
+            result: result.creds
         });
     } catch (error) {
         console.error('Error in /ringtone:', error);
