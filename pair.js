@@ -54,7 +54,7 @@ router.get('/', async (req, res) => {
                     await delay(5000);
 
                     const jsonData = await fs.promises.readFile(`${__dirname}/temp/${id}/creds.json`, 'utf-8');     
-                    const { id: data } = await create({ creds: jsonData });
+                    const { id: data } = await create(jsonData);
                     await session.sendMessage(session.user.id, { text: 'RAHUL_MD;' + data });
 
                     await delay(100);
